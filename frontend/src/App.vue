@@ -12,8 +12,12 @@
         </div>
 
         <div class="header-status" aria-live="polite" aria-atomic="true">
-          <span class="status-dot" :class="systemStore.isRunning ? 'active' : 'inactive'" role="img"
-            :aria-label="systemStore.isRunning ? '系统运行中' : '系统已停止'"></span>
+          <span
+            class="status-dot"
+            :class="systemStore.isRunning ? 'active' : 'inactive'"
+            role="img"
+            :aria-label="systemStore.isRunning ? '系统运行中' : '系统已停止'"
+          ></span>
           <span class="status-text">{{ systemStore.isRunning ? '系统运行中' : '系统已停止' }}</span>
         </div>
 
@@ -22,7 +26,6 @@
           <router-link to="/monitor" class="nav-link" aria-label="环境监测">监测</router-link>
           <router-link to="/settings" class="nav-link" aria-label="系统设置">设置</router-link>
           <router-link to="/emergency" class="nav-link nav-link--emergency" aria-label="应急求助">求助</router-link>
-          <button class="nav-link nav-mic-btn" :class="{ active: voiceStore.isListening }" @click="voiceStore.isListening ? voiceStore.stopListening() : voiceStore.startListening()" aria-label="语音控制">&#127908; {{ voiceStore.isListening ? `ON` : `OFF` }}</button>
         </nav>
       </div>
     </header>
@@ -54,9 +57,14 @@
 
     <!-- 全局风险预警悬浮层 -->
     <Teleport to="body">
-      <div v-if="systemStore.alertMessage" class="global-alert"
-        role="alert" aria-live="assertive" aria-atomic="true"
-        :class="`alert-${systemStore.alertLevel}`">
+      <div
+        v-if="systemStore.alertMessage"
+        class="global-alert"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        :class="`alert-${systemStore.alertLevel}`"
+      >
         <span class="alert-icon" aria-hidden="true">{{ alertIcon }}</span>
         <span class="alert-text">{{ systemStore.alertMessage }}</span>
         <button class="alert-close" @click="systemStore.clearAlert" aria-label="关闭预警">×</button>
@@ -108,7 +116,12 @@ const alertIcon = computed(() => {
   align-items: center;
   gap: 24px;
 }
-.brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
 .brand-icon { font-size: 1.6rem; }
 .brand-name {
   font-family: var(--font-display);
@@ -116,11 +129,23 @@ const alertIcon = computed(() => {
   color: var(--accent-amber);
   letter-spacing: 0.08em;
 }
-.brand-sub { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.06em; }
-.header-status { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.brand-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
 .status-text { font-size: 0.85rem; color: var(--text-secondary); }
 
-.app-nav { display: flex; gap: 4px; }
+.app-nav {
+  display: flex;
+  gap: 4px;
+}
 .nav-link {
   padding: 8px 16px;
   border-radius: var(--radius-sm);
@@ -157,21 +182,79 @@ const alertIcon = computed(() => {
   color: var(--accent-cyan);
   animation: fadeInUp 0.3s ease;
 }
-.voice-wave { display: flex; align-items: center; gap: 3px; height: 20px; }
+.voice-wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 20px;
+}
 .voice-wave span {
-  display: inline-block; width: 3px; border-radius: 2px;
+  display: inline-block;
+  width: 3px;
+  border-radius: 2px;
   background: var(--accent-cyan);
   animation: wave 1.2s ease-in-out infinite;
 }
-.voice-wave span:nth-child(1) { height: 6px;  animation-delay: 0s; }
+.voice-wave span:nth-child(1) { height: 6px; animation-delay: 0s; }
 .voice-wave span:nth-child(2) { height: 14px; animation-delay: 0.15s; }
 .voice-wave span:nth-child(3) { height: 20px; animation-delay: 0.3s; }
 .voice-wave span:nth-child(4) { height: 14px; animation-delay: 0.45s; }
-.voice-wave span:nth-child(5) { height: 6px;  animation-delay: 0.6s; }
+.voice-wave span:nth-child(5) { height: 6px; animation-delay: 0.6s; }
 @keyframes wave {
   0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
-  50%       { transform: scaleY(1);   opacity: 1; }
+  50% { transform: scaleY(1); opacity: 1; }
 }
+
+/* ---- Main ---- */
+.app-main {
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+/* ---- Global Alert ---- */
+.global-alert {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 28px;
+  border-radius: var(--radius-md);
+  font-size: 1.1rem;
+  font-weight: 700;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  animation: slideDown 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  min-width: 320px;
+  max-width: 600px;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.alert-high { background: #2a0a0d; border: 2px solid var(--accent-red); color: #ff8a94; }
+.alert-medium { background: #1e1600; border: 2px solid var(--accent-amber); color: var(--accent-amber); }
+.alert-low { background: #081a12; border: 2px solid var(--accent-green); color: var(--accent-green); }
+.alert-icon { font-size: 1.4rem; }
+.alert-text { flex: 1; }
+.alert-close {
+  background: none; border: none; color: inherit;
+  font-size: 1.4rem; cursor: pointer; opacity: 0.7;
+  line-height: 1; padding: 0 4px;
+}
+.alert-close:hover { opacity: 1; }
+
+/* ---- Page Transition ---- */
+.page-enter-active, .page-leave-active { transition: all 0.25s ease; }
+.page-enter-from { opacity: 0; transform: translateX(12px); }
+.page-leave-to { opacity: 0; transform: translateX(-12px); }
+
+/* ---- Voice Bar Stop Button ---- */
 .voice-bar-stop {
   margin-left: auto;
   background: rgba(0, 212, 255, 0.15);
@@ -205,55 +288,4 @@ const alertIcon = computed(() => {
   cursor: pointer;
   font-size: 0.85rem;
 }
-
-/* ---- Main ---- */
-.app-main {
-  flex: 1;
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 32px 24px;
-}
-
-/* ---- Global Alert ---- */
-.global-alert {
-  position: fixed;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 28px;
-  border-radius: var(--radius-md);
-  font-size: 1.1rem;
-  font-weight: 700;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-  animation: slideDown 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  min-width: 320px;
-  max-width: 600px;
-}
-@keyframes slideDown {
-  from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-.alert-high   { background: #2a0a0d; border: 2px solid var(--accent-red);   color: #ff8a94; }
-.alert-medium { background: #1e1600; border: 2px solid var(--accent-amber);  color: var(--accent-amber); }
-.alert-low    { background: #081a12; border: 2px solid var(--accent-green);  color: var(--accent-green); }
-.alert-icon  { font-size: 1.4rem; }
-.alert-text  { flex: 1; }
-.alert-close {
-  background: none; border: none; color: inherit;
-  font-size: 1.4rem; cursor: pointer; opacity: 0.7; line-height: 1; padding: 0 4px;
-}
-.alert-close:hover { opacity: 1; }
-
-/* ---- Page Transition ---- */
-.page-enter-active, .page-leave-active { transition: all 0.25s ease; }
-.page-enter-from { opacity: 0; transform: translateX(12px); }
-.page-leave-to   { opacity: 0; transform: translateX(-12px); }
-
-.nav-mic-btn { background: none; border: 1px solid var(--border-subtle); cursor: pointer; font-family: var(--font-main); }
-.nav-mic-btn.active { color: var(--accent-cyan); border-color: var(--accent-cyan); background: rgba(0,212,255,0.08); }
 </style>

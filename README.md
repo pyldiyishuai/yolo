@@ -7,6 +7,7 @@
 ```
 yolo/
 ├── README.md
+├── 需求文档.md
 ├── frontend/                    # Vue3 前端
 │   ├── index.html
 │   ├── package.json
@@ -43,6 +44,10 @@ yolo/
     └── start.sh                 # Linux/macOS 一键启动脚本
 ```
 
+## 项目文档
+
+- [需求文档](./需求文档.md)：用于后续功能迭代、版本规划、测试验收与答辩材料整理
+
 ## 快速启动
 
 ### 方式一：手动启动（推荐开发调试）
@@ -67,8 +72,8 @@ python -m uvicorn main:app --host 127.0.0.1 --port 8000
 **第三步：启动前端（另开终端）**
 
 ```powershell
-cd frontend
 npm install
+cd frontend
 npm run dev
 ```
 
@@ -137,6 +142,12 @@ from_number = +1xxxxxxxxxx
 |------|------|
 | 前端 | Vue 3 + Vite + Pinia + Vue Router + Axios |
 | 后端 | Python 3.10+ / FastAPI / Uvicorn |
-| 视觉识别 | Ultralytics YOLOv8n + OpenCV（CLAHE 低光照增强）|
-| 数据存储 | localStorage（前端配置）+ SQLite（后端日志）|
+| 视觉识别 | Ultralytics YOLOv8n + OpenCV（CLAHE 低光照增强） |
+| 数据存储 | localStorage（前端配置）+ SQLite（后端日志） |
 | 部署 | 全本地，无需服务器或云服务 |
+
+## 阅读建议
+
+- 首次了解项目：先阅读 `README.md`
+- 需要继续扩展功能、撰写答辩材料或拆分版本：阅读 `需求文档.md`
+- 需要定位实现细节：进入 `frontend/` 与 `backend/` 对应模块查看代码
