@@ -38,6 +38,25 @@ def _write_log(entry: dict):
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
+def _read_logs(limit: int = 50):
+    if not LOG_PATH.exists():
+        return []
+
+    rows = []
+    with open(LOG_PATH, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rows.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+
+    rows.reverse()
+    return rows[:limit]
+
+
 def _try_send_sms(contact: Contact, message: str) -> bool:
     """尝试调用 Twilio 或阿里云短信，未配置则跳过"""
     try:
@@ -62,7 +81,7 @@ def _try_send_sms(contact: Contact, message: str) -> bool:
             )
             return True
 
-        elif sms_provider == "aliyun":
+        if sms_provider == "aliyun":
             from alibabacloud_dysmsapi20170525.client import Client as SmsClient
             from alibabacloud_tea_openapi import models as open_api_models
             from alibabacloud_dysmsapi20170525 import models as sms_models
@@ -80,10 +99,9 @@ def _try_send_sms(contact: Contact, message: str) -> bool:
             )
             client.send_sms(req)
             return True
-        else:
-            # 未配置短信服务，本地日志记录即可
-            print(f"[应急] SMS未配置，模拟发送给 {contact.name}({contact.phone}): {message}")
-            return True
+
+        print(f"[应急] SMS未配置，模拟发送给 {contact.name}({contact.phone}): {message}")
+        return True
     except Exception as e:
         print(f"[应急] 短信发送失败: {e}")
         return False
@@ -94,7 +112,7 @@ async def trigger_emergency(req: EmergencyRequest):
     """处理应急求助，通知所有紧急联系人"""
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     loc_str = "位置未知"
-    if req.location and req.location.lat:
+    if req.location and req.location.lat is not None and req.location.lng is not None:
         loc_str = f"纬度{req.location.lat:.5f}, 经度{req.location.lng:.5f}"
 
     message = (
@@ -109,9 +127,18 @@ async def trigger_emergency(req: EmergencyRequest):
         ok = _try_send_sms(contact, message)
         results.append({"contact_id": contact.id, "name": contact.name, "ok": ok})
         _write_log({
-            "time": now, "contact": contact.name,
-            "phone": contact.phone, "ok": ok,
-            "location": loc_str, "risk_info": req.risk_info,
+            "time": now,
+            "contact": contact.name,
+            "phone": contact.phone,
+            "ok": ok,
+            "location": loc_str,
+            "risk_info": req.risk_info,
         })
 
     return {"ok": True, "results": results, "message": message}
+
+
+@router.get("/emergency/history")
+async def get_emergency_history(limit: int = 50):
+    """读取求助历史记录"""
+    return {"records": _read_logs(limit)}

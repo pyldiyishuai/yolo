@@ -1,9 +1,8 @@
 """
 本地数据接口模块
-提供识别日志读取、风险记录写入等轻量接口
+提供识别日志读取、风险记录写入、统计分析等轻量接口
 存储方式：SQLite（logs/data.db）
 """
-import json
 import sqlite3
 from pathlib import Path
 from datetime import datetime
@@ -90,6 +89,17 @@ async def get_detection_log(limit: int = 50):
     return {"logs": [dict(r) for r in rows]}
 
 
+@router.get("/log/detection/history")
+async def get_detection_history(limit: int = 100):
+    """历史识别记录查询"""
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM detection_log ORDER BY id DESC LIMIT ?", (limit,)
+    ).fetchall()
+    conn.close()
+    return {"records": [dict(r) for r in rows]}
+
+
 @router.post("/log/risk")
 async def log_risk(record: RiskRecord):
     """写入风险记录"""
@@ -105,14 +115,66 @@ async def log_risk(record: RiskRecord):
 
 
 @router.get("/log/risk")
-async def get_risk_log(limit: int = 30):
-    """读取风险记录"""
+async def get_risk_log(limit: int = 30, level: Optional[str] = None):
+    """读取风险记录，可按等级筛选"""
     conn = get_db()
-    rows = conn.execute(
-        "SELECT * FROM risk_record ORDER BY id DESC LIMIT ?", (limit,)
-    ).fetchall()
+    if level:
+        rows = conn.execute(
+            "SELECT * FROM risk_record WHERE level = ? ORDER BY id DESC LIMIT ?",
+            (level, limit),
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT * FROM risk_record ORDER BY id DESC LIMIT ?", (limit,)
+        ).fetchall()
     conn.close()
     return {"records": [dict(r) for r in rows]}
+
+
+@router.get("/log/stats")
+async def get_log_stats():
+    """读取日志统计信息"""
+    conn = get_db()
+
+    total_detection = conn.execute("SELECT COUNT(*) AS c FROM detection_log").fetchone()["c"]
+    total_risk = conn.execute("SELECT COUNT(*) AS c FROM risk_record").fetchone()["c"]
+    high_risk = conn.execute(
+        "SELECT COUNT(*) AS c FROM risk_record WHERE level = 'high'"
+    ).fetchone()["c"]
+    medium_risk = conn.execute(
+        "SELECT COUNT(*) AS c FROM risk_record WHERE level = 'medium'"
+    ).fetchone()["c"]
+    low_risk = conn.execute(
+        "SELECT COUNT(*) AS c FROM risk_record WHERE level = 'low'"
+    ).fetchone()["c"]
+
+    top_targets = [
+        dict(r)
+        for r in conn.execute(
+            "SELECT label, COUNT(*) AS count FROM detection_log "
+            "GROUP BY label ORDER BY count DESC, label ASC LIMIT 5"
+        ).fetchall()
+    ]
+
+    recent_detections = [
+        dict(r)
+        for r in conn.execute(
+            "SELECT * FROM detection_log ORDER BY id DESC LIMIT 10"
+        ).fetchall()
+    ]
+
+    conn.close()
+    return {
+        "summary": {
+            "total_detection": total_detection,
+            "total_risk": total_risk,
+            "high_risk": high_risk,
+            "medium_risk": medium_risk,
+            "low_risk": low_risk,
+        },
+        "top_targets": top_targets,
+        "recent_detections": recent_detections,
+    }
 
 
 @router.delete("/log/clear")
