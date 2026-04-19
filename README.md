@@ -100,7 +100,7 @@ yolo/
 ### 5.1 后端依赖安装
 
 ```powershell
-cd backend
+
 python -m pip install -r requirements.txt
 ```
 
